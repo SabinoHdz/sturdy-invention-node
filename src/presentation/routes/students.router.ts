@@ -5,6 +5,7 @@ export class StudentRoutes {
     const router = Router();
     const studentsController = new StudentsController();
     router.get("/", studentsController.getStudents);
+    router.get("/:id", studentsController.getStudentById);
     return router;
   }
 }
