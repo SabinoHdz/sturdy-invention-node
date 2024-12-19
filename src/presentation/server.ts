@@ -1,6 +1,4 @@
 import express, { Router } from "express";
-import { stat } from "fs";
-
 interface Options {
   PORT: number;
   routes: Router;
@@ -15,6 +13,9 @@ export class Server {
     this.routes = routes;
   }
   async start() {
+    //Middlewares
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
     //Routes
     this.app.use(this.routes);
     this.app.listen(this.port, () => {

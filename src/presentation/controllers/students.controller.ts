@@ -49,6 +49,7 @@ export class StudentsController {
 
   public getStudentById = (req: Request, res: Response) => {
     const { id } = req.params;
+    console.log(id);
     const identificador = +id;
 
     if (isNaN(identificador))
@@ -56,8 +57,27 @@ export class StudentsController {
 
     const student = this.students.find((student) => student.id === +id);
     if (!student) {
-      res.status(404).json({ message: "Student not found" });
+      return res.status(404).json({ message: "Student not found" });
     }
-    res.json(student);
+    return res.json(student);
+  };
+
+  public createStudent = (req: Request, res: Response) => {
+    const { name, email, account, age, career } = req.body;
+    console.log({ body: req.body });
+
+    if (!name) return res.status(400).json({ message: "Name is required" });
+    if (!email) return res.status(400).json({ message: "Email is required" });
+    if (!account)
+      return res.status(400).json({ message: "Account is required" });
+    if (!age) return res.status(400).json({ message: "Age is required" });
+    if (!career) return res.status(400).json({ message: "Career is required" });
+
+    const student = {
+      id: this.students.length + 1,
+      ...req.body,
+    };
+    this.students.push(student);
+    res.status(201).json({ message: "Student created" });
   };
 }

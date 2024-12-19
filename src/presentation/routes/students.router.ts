@@ -6,6 +6,7 @@ export class StudentRoutes {
     const studentsController = new StudentsController();
     router.get("/", studentsController.getStudents);
     router.get("/:id", studentsController.getStudentById);
+    router.post("/", studentsController.createStudent);
     return router;
   }
 }
