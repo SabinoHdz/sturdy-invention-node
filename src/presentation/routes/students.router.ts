@@ -7,6 +7,7 @@ export class StudentRoutes {
     router.get("/", studentsController.getStudents);
     router.get("/:id", studentsController.getStudentById);
     router.post("/", studentsController.createStudent);
+    router.put("/:id", studentsController.updateStudent);
     return router;
   }
 }

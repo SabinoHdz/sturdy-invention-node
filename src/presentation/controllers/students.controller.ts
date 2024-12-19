@@ -80,4 +80,24 @@ export class StudentsController {
     this.students.push(student);
     res.status(201).json({ message: "Student created" });
   };
+  public updateStudent = (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { name, email, account, age, career } = req.body;
+    const identificador = +id;
+    if (isNaN(identificador))
+      return res.status(400).json({ message: "Id argument is not a number" });
+
+    const student = this.students.find((student) => student.id === +id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    student.name = name ?? student.name;
+    student.email = email ?? student.email;
+    student.account = account ?? student.account;
+    student.age = age ?? student.age;
+    student.career = career ?? student.career;
+
+    res.json(student);
+  };
 }
