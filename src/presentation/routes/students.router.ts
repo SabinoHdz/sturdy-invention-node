@@ -8,6 +8,7 @@ export class StudentRoutes {
     router.get("/:id", studentsController.getStudentById);
     router.post("/", studentsController.createStudent);
     router.put("/:id", studentsController.updateStudent);
+    router.delete("/:id", studentsController.deleteStudent);
     return router;
   }
 }

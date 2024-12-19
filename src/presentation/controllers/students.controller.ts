@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { stat } from "fs";
 
 export class StudentsController {
   //*DI
@@ -99,5 +100,24 @@ export class StudentsController {
     student.career = career ?? student.career;
 
     res.json(student);
+  };
+
+  public deleteStudent = (req: Request, res: Response) => {
+    const { id } = req.params;
+    const identificador = +id;
+    if (isNaN(identificador))
+      return res.status(400).json({ message: "Id argument is not a number" });
+
+    const student = this.students.find((student) => student.id === +id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    this.students = this.students.filter((student) => student.id !== +id);
+    res.json({
+      res: student,
+      status: 200,
+      message: "Student deleted",
+    });
   };
 }
