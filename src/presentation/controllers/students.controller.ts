@@ -1,70 +1,33 @@
-import { Request, Response } from "express";
-import { stat } from "fs";
+import e, { Request, Response } from "express";
+import { prisma } from "../../data/postgres";
 
 export class StudentsController {
   //*DI
-
-  students = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "John@example.com",
-      account: 2344545,
-      age: 23,
-      career: "Software Engineering",
-      enrollment_date: "2021-01-01",
-    },
-    {
-      id: 2,
-      name: "John Doe",
-      email: "John@example.com",
-      account: 2344545,
-      age: 23,
-      career: "Software Engineering",
-      enrollment_date: "2021-01-01",
-    },
-    {
-      id: 3,
-      name: "John Doe",
-      email: "John@example.com",
-      account: 2344545,
-      age: 23,
-      career: "Data Science",
-      enrollment_date: "2021-01-01",
-    },
-    {
-      id: 4,
-      name: "John Doe",
-      email: "John@example.com",
-      account: 2344545,
-      age: 23,
-      career: "Data Science",
-      enrollment_date: "2021-01-01",
-    },
-  ];
   constructor() {}
 
-  public getStudents = (req: Request, res: Response) => {
-    res.json(this.students);
+  public getStudents = async (req: Request, res: Response) => {
+    const students = await prisma.student.findMany();
+    res.json(students);
   };
 
-  public getStudentById = (req: Request, res: Response) => {
+  public getStudentById = async (req: Request, res: Response) => {
     const { id } = req.params;
-    console.log(id);
     const identificador = +id;
 
     if (isNaN(identificador))
       return res.status(400).json({ message: "Id argument is not a number" });
 
-    const student = this.students.find((student) => student.id === +id);
+    const student = await prisma.student.findUnique({
+      where: { id: identificador },
+    });
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
-    return res.json(student);
+    res.json(student);
   };
 
-  public createStudent = (req: Request, res: Response) => {
-    const { name, email, account, age, career } = req.body;
+  public createStudent = async (req: Request, res: Response) => {
+    const { name, email, account, age, career, enrollment_date } = req.body;
     console.log({ body: req.body });
 
     if (!name) return res.status(400).json({ message: "Name is required" });
@@ -74,21 +37,29 @@ export class StudentsController {
     if (!age) return res.status(400).json({ message: "Age is required" });
     if (!career) return res.status(400).json({ message: "Career is required" });
 
-    const student = {
-      id: this.students.length + 1,
-      ...req.body,
-    };
-    this.students.push(student);
-    res.status(201).json({ message: "Student created" });
+    const student = await prisma.student.create({
+      data: {
+        name,
+        email,
+        account,
+        age,
+        career,
+        enrollment_date: new Date(enrollment_date),
+      },
+    });
+
+    res.status(201).json({ message: "Student created", student });
   };
-  public updateStudent = (req: Request, res: Response) => {
+  public updateStudent = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name, email, account, age, career } = req.body;
+    const { name, email, account, age, career, enrollment_date } = req.body;
     const identificador = +id;
     if (isNaN(identificador))
       return res.status(400).json({ message: "Id argument is not a number" });
 
-    const student = this.students.find((student) => student.id === +id);
+    const student = await prisma.student.findUnique({
+      where: { id: identificador },
+    });
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
@@ -98,24 +69,39 @@ export class StudentsController {
     student.account = account ?? student.account;
     student.age = age ?? student.age;
     student.career = career ?? student.career;
+    student.enrollment_date = enrollment_date
+      ? new Date(enrollment_date)
+      : student.enrollment_date;
 
-    res.json(student);
+    const updateStudent = await prisma.student.update({
+      where: { id: identificador },
+      data: student,
+    });
+
+    res.json({
+      message: "Student updated",
+      status: 200,
+      student: updateStudent,
+    });
   };
 
-  public deleteStudent = (req: Request, res: Response) => {
+  public deleteStudent = async (req: Request, res: Response) => {
     const { id } = req.params;
     const identificador = +id;
     if (isNaN(identificador))
       return res.status(400).json({ message: "Id argument is not a number" });
 
-    const student = this.students.find((student) => student.id === +id);
+    const student = await prisma.student.findUnique({
+      where: { id: identificador },
+    });
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
-
-    this.students = this.students.filter((student) => student.id !== +id);
+    const deleteStudent = await prisma.student.delete({
+      where: { id: identificador },
+    });
     res.json({
-      res: student,
+      res: deleteStudent,
       status: 200,
       message: "Student deleted",
     });
