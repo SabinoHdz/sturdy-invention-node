@@ -1,5 +1,6 @@
 import e, { Request, Response } from "express";
 import { prisma } from "../../data/postgres";
+import { CreateStudentDto, UpdateStudentDto } from "../../domain/dtos";
 
 export class StudentsController {
   //*DI
@@ -27,55 +28,34 @@ export class StudentsController {
   };
 
   public createStudent = async (req: Request, res: Response) => {
-    const { name, email, account, age, career, enrollment_date } = req.body;
-    console.log({ body: req.body });
+    const [error, createStudentDto] = CreateStudentDto.create(req.body);
+    //console.log({ body: req.body });
 
-    if (!name) return res.status(400).json({ message: "Name is required" });
-    if (!email) return res.status(400).json({ message: "Email is required" });
-    if (!account)
-      return res.status(400).json({ message: "Account is required" });
-    if (!age) return res.status(400).json({ message: "Age is required" });
-    if (!career) return res.status(400).json({ message: "Career is required" });
-
+    if (error) return res.status(400).json({ message: error });
     const student = await prisma.student.create({
-      data: {
-        name,
-        email,
-        account,
-        age,
-        career,
-        enrollment_date: new Date(enrollment_date),
-      },
+      data: createStudentDto!,
     });
 
     res.status(201).json({ message: "Student created", student });
   };
   public updateStudent = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { name, email, account, age, career, enrollment_date } = req.body;
-    const identificador = +id;
-    if (isNaN(identificador))
-      return res.status(400).json({ message: "Id argument is not a number" });
+    const id = +req.params.id;
+    const [error, updateStudentDto] = UpdateStudentDto.update({
+      id,
+      ...req.body,
+    });
+    if (error) return res.status(400).json({ message: error });
 
     const student = await prisma.student.findUnique({
-      where: { id: identificador },
+      where: { id },
     });
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    student.name = name ?? student.name;
-    student.email = email ?? student.email;
-    student.account = account ?? student.account;
-    student.age = age ?? student.age;
-    student.career = career ?? student.career;
-    student.enrollment_date = enrollment_date
-      ? new Date(enrollment_date)
-      : student.enrollment_date;
-
     const updateStudent = await prisma.student.update({
-      where: { id: identificador },
-      data: student,
+      where: { id },
+      data: updateStudentDto!.values,
     });
 
     res.json({
