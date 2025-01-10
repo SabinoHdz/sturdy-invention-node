@@ -1,6 +1,6 @@
 export class UpdateStudentDto {
   private constructor(
-    public readonly id: string,
+    public readonly id: number,
     public readonly name?: string,
     public readonly email?: string,
     public readonly account?: number,
